@@ -33,10 +33,10 @@ async function handleConfirmation() {
     statusEl.textContent = "❌ Ошибка: " + (error?.message || "Сессия не найдена");
   } else {
     statusEl.textContent = "✅ Регистрация подтверждена!";
+    // Очистка хэша и перенаправление на страницу входа
     history.replaceState(null, null, window.location.pathname);
-    // Перенаправление на страницу входа после подтверждения
     setTimeout(() => {
-      window.location.href = '/index.html'; // Замените на путь к вашей странице входа
+      window.location.href = '/index.html'; // Перенаправление на вторую страницу
     }, 1000);
   }
 }
