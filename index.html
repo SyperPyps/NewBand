@@ -1,49 +1,44 @@
-  <!DOCTYPE html>
-  <html lang="ru">
-  <meta charset="utf-8">
-  <title>Подтверждение регистрации</title>
+<!DOCTYPE html>
+<html lang="ru">
+<meta charset="utf-8">
+<title>Подтверждение регистрации</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    body { font:16px/1.4 system-ui,sans-serif; max-width:420px; margin:4rem auto; text-align:center; }
-    button { padding:12px 20px; border-radius:10px; border:1px solid #ccc; cursor:pointer; }
-    #status { margin-top:20px; }
-  </style>
+<style>
+  body { font:16px/1.4 system-ui,sans-serif; max-width:420px; margin:4rem auto; text-align:center; }
+  #status { margin-top:20px; }
+</style>
 
-  <body>
-    <h1>Подтверждение регистрации</h1>
-    <p>Нажмите кнопку ниже, чтобы завершить вход:</p>
-    <button id="confirm">✅ Подтвердить регистрацию</button>
-    <p id="status"></p>
+<body>
+  <h1>Подтверждение регистрации</h1>
+  <p id="status">⏳ Проверяем токен...</p>
 
-  <script>
-  const SUPABASE_URL = "https://kiumgkldescdkqzswvjl.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpdW1na2xkZXNjZGtxenN3dmpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MjM0NjEsImV4cCI6MjA3MjQ5OTQ2MX0.XTKf6cz3n2BlrIg6cBev5x-hSvHyu7bu2ojZeV_eQR4";
+<script>
+const SUPABASE_URL = "https://kiumgkldescdkqzswvjl.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpdW1na2xkZXNjZGtxenN3dmpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5MjM0NjEsImV4cCI6MjA3MjQ5OTQ2MX0.XTKf6cz3n2BlrIg6cBev5x-hSvHyu7bu2ojZeV_eQR4";
 
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  async function handleConfirmation() {
-    const statusEl = document.getElementById("status");
-    statusEl.textContent = "⏳ Проверяем токен...";
+async function checkSession() {
+  const statusEl = document.getElementById("status");
 
-    // Получаем сессию (SDK автоматически обрабатывает хэш из URL)
-    const { data: { session }, error } = await supabase.auth.getSession();
+  const { data: { session }, error } = await supabase.auth.getSession();
 
-    if (error || !session) {
-      statusEl.textContent = "❌ Ошибка: " + (error?.message || "Сессия не найдена");
-    } else {
-      statusEl.textContent = "✅ Регистрация подтверждена! Перенаправляем...";
-      // Опционально: Очистка хэша в URL
-      history.replaceState(null, null, window.location.pathname);
-      setTimeout(() => {
-        window.location.href = "http://localhost:63342/PythonProject/success.html"; // Создайте success.html или измените на нужный URL
-      }, 1500);
-    }
+  if(error || !session) {
+    statusEl.textContent = "❌ Сессия не найдена или ошибка: " + (error?.message || "");
+  } else {
+    statusEl.textContent = "✅ Регистрация подтверждена! Перенаправляем...";
+    // Очистка хэша из URL
+    history.replaceState(null, null, window.location.pathname);
+    setTimeout(() => {
+      window.location.href = "https://newband.onrender.com/success.html";
+    }, 1500);
   }
+}
 
-  document.getElementById("confirm").onclick = handleConfirmation;
-  // Или запустите автоматически: handleConfirmation();
-  </script>
-  </body>
-  </html>
+// Запускаем проверку сразу при загрузке
+checkSession();
+</script>
+</body>
+</html>
