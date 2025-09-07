@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<meta charset="utf-8">
+<title>Вход по Email (Magic Link)</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  body { font:16px/1.3 system-ui,sans-serif; max-width:420px; margin:4rem auto; text-align:center; }
+  input, button { width:100%; padding:10px; margin:6px 0; border-radius:10px; border:1px solid #ccc; }
+  button { cursor:pointer; }
+  .ok { color:#0a7a30 }
+  .err { color:#b00020 }
+  #status { margin-top:20px; }
+</style>
+
+<body>
+  <h1>Вход по Email</h1>
+
+  <div id="loginForm">
+    <input id="email" type="email" placeholder="you@example.com" required>
+    <button id="send">Отправить ссылку</button>
+    <p id="msg"></p>
+  </div>
+
+  <div id="waiting" style="display:none;">
+    <p>📩 Ссылка отправлена! Подтвердите почту...</p>
+    <p id="status">⏳ Ждём подтверждения...</p>
+  </div>
+
+<script>
+const SUPABASE_URL = "https://gilbbgbmzzxsfnuguzci.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpbGJiZ2Jtenp4c2ZudWd1emNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxNzgyNTMsImV4cCI6MjA3Mjc1NDI1M30.ZlVU1kGvphzdEKAhVnMHnKQxcfhVcTpvYIFMhbrWURA"; // вставьте ваш ключ
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = id => document.getElementById(id);
+
+// Отправка магической ссылки
+$('send').onclick = async () => {
+  const email = $('email').value.trim();
+  if (!email) return $('msg').textContent = 'Введите e-mail';
+
+  $('msg').textContent = 'Отправляем ссылку...';
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.href }
+  });
+
+  if (error) {
+    $('msg').textContent = 'Ошибка: ' + error.message;
+    $('msg').className = 'err';
+  } else {
+    $('loginForm').style.display = 'none';
+    $('waiting').style.display = 'block';
+  }
+};
+
+// Обработка магической ссылки при возврате
+async function handleMagicLink() {
+  const { data, error } = await supabase.auth.getSessionFromUrl({ storeSession: true });
+  if (error) return $('status').textContent = '❌ Ошибка: ' + error.message;
+
+  if (data.session) {
+    $('loginForm').style.display = 'none';
+    $('waiting').style.display = 'block';
+    checkEmailConfirmed();
+  }
+}
+
+// Проверка подтверждения email
+async function checkEmailConfirmed() {
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error) return $('status').textContent = '❌ Ошибка: ' + error.message;
+
+  if (user?.email_confirmed_at) {
+    $('status').textContent = '✅ Email подтверждён! Перенаправляем...';
+    $('status').className = 'ok';
+    setTimeout(() => window.location.href = '/success.html', 1000);
+  } else {
+    $('status').textContent = '⏳ Ждём подтверждения...';
+    $('status').className = 'err';
+    setTimeout(checkEmailConfirmed, 3000); // проверка каждые 3 сек
+  }
+}
+
+// Запуск при загрузке страницы
+window.addEventListener('load', handleMagicLink);
+
+// Реакция на изменение авторизации
+supabase.auth.onAuthStateChange(() => checkEmailConfirmed());
+</script>
+</body>
+</html>
